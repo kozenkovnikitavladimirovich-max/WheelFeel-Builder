@@ -1,0 +1,108 @@
+name: Build WheelFeel installer
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wheelfeel-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    steps:
+      - name: Check read-only private source token
+        shell: pwsh
+        env:
+          PRIVATE_REPO_TOKEN: ${{ secrets.WHEELFEEL_SOURCE_TOKEN }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:PRIVATE_REPO_TOKEN)) {
+            throw 'Missing Actions secret WHEELFEEL_SOURCE_TOKEN (fine-grained token: WheelFeel repository, Contents read-only).'
+          }
+
+      - name: Checkout private source (not published)
+        uses: actions/checkout@v4
+        with:
+          repository: kozenkovnikitavladimirovich-max/WheelFeel
+          ref: main
+          token: ${{ secrets.WHEELFEEL_SOURCE_TOKEN }}
+          persist-credentials: false
+          path: source
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+          cache-dependency-path: source/requirements-build.txt
+
+      - name: Install dependencies
+        working-directory: source
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          if ($LASTEXITCODE -ne 0) { throw 'pip upgrade failed' }
+          python -m pip install -r requirements-build.txt
+          if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed' }
+
+      - name: Validate source
+        working-directory: source
+        shell: pwsh
+        run: |
+          foreach ($file in @('main.py', 'WheelFeel.spec', 'WheelFeel.iss', 'app.ico')) {
+            if (-not (Test-Path $file)) { throw "Required file missing: $file" }
+          }
+          python -m compileall -q .
+          if ($LASTEXITCODE -ne 0) { throw 'Python syntax check failed' }
+
+      - name: Build Windows program
+        working-directory: source
+        shell: pwsh
+        run: |
+          python -m PyInstaller --noconfirm --clean WheelFeel.spec
+          if ($LASTEXITCODE -ne 0) { throw 'PyInstaller failed' }
+          if (-not (Test-Path 'dist/WheelFeel/WheelFeel.exe')) {
+            throw 'Expected onedir executable not found'
+          }
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: |
+          $candidates = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 7\ISCC.exe"
+          )
+          if (-not ($candidates | Where-Object { Test-Path $_ })) {
+            choco install innosetup --yes --no-progress
+            if ($LASTEXITCODE -ne 0) { throw 'Inno Setup install failed' }
+          }
+
+      - name: Build installer
+        working-directory: source
+        shell: pwsh
+        run: |
+          $iscc = @(
+            "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 6\ISCC.exe",
+            "${env:ProgramFiles(x86)}\Inno Setup 7\ISCC.exe",
+            "${env:ProgramFiles}\Inno Setup 7\ISCC.exe"
+          ) | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if (-not $iscc) { throw 'ISCC.exe not found' }
+          & $iscc 'WheelFeel.iss'
+          if ($LASTEXITCODE -ne 0) { throw 'Inno Setup failed' }
+          $setups = @(Get-ChildItem 'installer' -Filter 'WheelFeel_Setup_*.exe' -File -ErrorAction Stop)
+          if ($setups.Count -lt 1) { throw 'Installer was not generated' }
+
+      - name: Upload installer only (PUBLIC artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: WheelFeel-Installer-Test
+          path: source/installer/WheelFeel_Setup_*.exe
+          if-no-files-found: error
+          retention-days: 7
