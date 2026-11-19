@@ -1,0 +1,73 @@
+name: Publish WheelFeel release
+
+on:
+  workflow_dispatch:
+    inputs:
+      build_run_id:
+        description: "Successful Build WheelFeel installer workflow run ID"
+        required: true
+        type: string
+      version:
+        description: "Version (example: 1.7)"
+        required: true
+        type: string
+      codename:
+        description: "Codename"
+        required: true
+        default: Viking
+        type: string
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish-test-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release request and source build
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_ID: ${{ inputs.build_run_id }}
+          VERSION: ${{ inputs.version }}
+          CODENAME: ${{ inputs.codename }}
+        run: |
+          set -euo pipefail
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]] || { echo "Invalid run ID"; exit 1; }
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+(\.[0-9]+)?$ ]] || { echo "Invalid version"; exit 1; }
+          [[ "$CODENAME" =~ ^[A-Za-z0-9-]+$ ]] || { echo "Invalid codename"; exit 1; }
+          result="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$RUN_ID" --jq '.conclusion + "|" + .name')"
+          [[ "$result" == "success|Build WheelFeel installer" ]] || { echo "Run is not a successful WheelFeel installer build: $result"; exit 1; }
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "Release v$VERSION already exists. Refusing overwrite."
+            exit 1
+          fi
+          echo "RUN_ID=$RUN_ID" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "CODENAME=$CODENAME" >> "$GITHUB_ENV"
+
+      - name: Download tested installer artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: WheelFeel-Installer-Test
+          run-id: ${{ inputs.build_run_id }}
+          github-token: ${{ github.token }}
+          path: release-files
+
+      - name: Verify installer and create public prerelease
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          expected="WheelFeel_Setup_${VERSION}_${CODENAME}.exe"
+          [[ -f "release-files/$expected" ]] || { echo "Expected installer not found: $expected"; exit 1; }
+          [[ "$(find release-files -maxdepth 1 -type f | wc -l)" -eq 1 ]] || { echo "Unexpected extra files"; exit 1; }
+          (cd release-files && sha256sum "$expected" > SHA256SUMS.txt)
+          gh release create "v$VERSION" "release-files/$expected" "release-files/SHA256SUMS.txt" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title "WheelFeel $VERSION $CODENAME (test)" \
+            --notes "Тестовая сборка WheelFeel $VERSION. Не устанавливайте вместо рабочей версии без резервной копии данных. Исходники закрыты." \
+            --prerelease \
+            --target main
