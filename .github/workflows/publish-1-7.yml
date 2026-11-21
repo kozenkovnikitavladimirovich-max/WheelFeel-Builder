@@ -1,0 +1,65 @@
+name: Publish WheelFeel 1.7 installer
+
+on:
+  push:
+    paths:
+      - .github/workflows/publish-1-7.yml
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check if release already exists
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          if gh release view v1.7 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo 'exists=true' >> "$GITHUB_OUTPUT"
+            echo 'Release v1.7 already exists; no overwrite.'
+          else
+            echo 'exists=false' >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify original WheelFeel 1.7 build
+        if: steps.existing.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/44579647583" --jq '.conclusion + "|" + .name')"
+          [[ "$actual" == 'success|Build WheelFeel installer' ]] || { echo "Original 1.7 build isn't successful: $actual"; exit 1; }
+
+      - name: Download original tested 1.7 installer
+        if: steps.existing.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 44579647583
+          github-token: ${{ github.token }}
+          name: WheelFeel-Installer-Test
+          path: release-files
+
+      - name: Publish permanent public v1.7 release
+        if: steps.existing.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          file=release-files/WheelFeel_Setup_1.7_Viking.exe
+          [[ -f "$file" ]] || { echo "WheelFeel 1.7 installer is missing"; exit 1; }
+          test "$(stat -c %s "$file")" -gt 1000000
+          (cd release-files && sha256sum WheelFeel_Setup_1.7_Viking.exe > SHA256SUMS.txt)
+          gh release create v1.7 "$file" release-files/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" --target main \
+            --title "Wheel Feel 1.7 Viking" \
+            --notes "Первая версия Wheel Feel с системой обновлений через GitHub Releases. Windows installer. Сделайте резервную копию пользовательских данных перед тестированием обновления." \
+            --latest
