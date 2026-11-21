@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c111b">
+  <meta name="description" content="Wheel Feel — приложение для подготовки и управления каталогом шин и дисков, ценами, поставщиками, фотографиями и выгрузкой на Avito.">
+  <title>Wheel Feel — управление товарами для Avito</title>
+  <style>
+    :root{color-scheme:dark;--bg:#0c111b;--panel:#171f2b;--muted:#a7b4c6;--line:#2c3646;--accent:#72e2bd;--white:#f5f8fb}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;color:var(--white);background:radial-gradient(ellipse 60% 40% at 78% 0%,#1c3d42 0%,transparent 68%),var(--bg);line-height:1.6}
+    a{color:inherit;text-decoration:none}a:focus-visible{outline:3px solid var(--accent);outline-offset:4px;border-radius:5px}
+    .container{width:min(1120px,calc(100% - 44px));margin:auto}.nav{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding:22px 0}
+    .logo{font-weight:800;letter-spacing:-.7px;font-size:23px}.logo span{color:var(--accent)}nav a{margin-left:26px;color:#d8e2eb;font-size:14px}nav a:hover{color:var(--accent)}
+    .hero{padding:95px 0 88px;display:grid;grid-template-columns:1.3fr .7fr;align-items:center;gap:50px}.pill{display:inline-block;border:1px solid #346353;color:var(--accent);border-radius:100px;padding:6px 14px;background:#17352c99;font-size:13px;font-weight:600}
+    h1{font-size:clamp(42px,6vw,76px);line-height:1.08;letter-spacing:-3px;margin:23px 0 23px;max-width:780px}h1 em{color:var(--accent);font-style:normal}.lead{font-size:19px;color:var(--muted);max-width:690px;margin-bottom:32px}
+    .button{display:inline-flex;justify-content:center;align-items:center;gap:10px;background:var(--accent);color:#09201b;font-weight:800;border-radius:13px;padding:15px 24px;transition:transform .15s,background .15s}
+    .button:hover{background:#9af2d3;transform:translateY(-2px)}.subline{color:var(--muted);font-size:13px;margin-top:13px}
+    .showcase{background:linear-gradient(145deg,#203746,#101821);border:1px solid #385460;border-radius:24px;padding:25px;box-shadow:0 22px 75px #0008;min-height:355px;display:grid;align-content:center;gap:15px;transform:rotate(2deg)}
+    .mock-header{display:flex;gap:7px}.dot{width:9px;height:9px;border-radius:50%;background:#7f96a7}.mockrow{display:flex;align-items:center;justify-content:space-between;background:#ffffff0e;border-radius:11px;padding:15px 18px;font-size:14px}.mockrow b{color:var(--accent)}
+    section{padding:58px 0}.section-title{font-size:clamp(28px,4vw,40px);letter-spacing:-1px;margin:0 0 12px}.section-intro{color:var(--muted);margin:0 0 30px}
+    .features{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.feature{background:var(--panel);border:1px solid var(--line);border-radius:17px;padding:23px}.symbol{font-size:24px}.feature h3{margin:13px 0 5px;font-size:18px}.feature p{color:var(--muted);font-size:14px;margin:0}
+    .download{background:linear-gradient(115deg,#172e2c,#161d2b);border:1px solid #37524c;border-radius:22px;padding:36px;display:flex;justify-content:space-between;align-items:center;gap:30px}.download h2{font-size:30px;margin:0}.download p{color:var(--muted);margin:8px 0 0}
+    .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;counter-reset:step}.step{border-top:1px solid var(--line);padding-top:20px}.step:before{counter-increment:step;content:"0" counter(step);font-size:27px;font-weight:800;color:var(--accent)}.step h3{margin:8px 0}.step p{margin:0;color:var(--muted);font-size:14px}
+    .note{color:var(--muted);font-size:13px;margin-top:20px}footer{border-top:1px solid var(--line);padding:24px 0 35px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:15px}
+    @media(max-width:820px){.hero{grid-template-columns:1fr;padding:55px 0}.showcase{transform:none;min-height:260px}.features{grid-template-columns:repeat(2,1fr)}.download{flex-direction:column;align-items:flex-start}.steps{grid-template-columns:1fr}nav a{margin-left:12px}h1{letter-spacing:-2px}}
+    @media(max-width:540px){.features{grid-template-columns:1fr}.nav{flex-wrap:wrap;gap:12px}.nav nav{width:100%;display:flex;gap:18px}.nav nav a{margin-left:0}.download{padding:25px}.button{width:100%}footer{flex-direction:column}}
+  </style>
+</head>
+<body>
+  <header class="container nav">
+    <a class="logo" href="#" aria-label="Wheel Feel — главная">Wheel<span>Feel</span></a>
+    <nav aria-label="Навигация"><a href="#features">Возможности</a><a href="#download">Скачать</a><a href="#update">Обновления</a></nav>
+  </header>
+  <main>
+    <div class="container hero">
+      <div>
+        <span class="pill">Версия 1.7 · Viking · Windows</span>
+        <h1>Всё для работы с <em>Avito</em> — в одном приложении.</h1>
+        <p class="lead">Wheel Feel помогает работать с каталогом шин и дисков: собирать прайс-листы поставщиков, настраивать цены, управлять фотографиями и готовить данные для Avito.</p>
+        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.7/WheelFeel_Setup_1.7_Viking.exe">↓ Скачать WheelFeel 1.7</a>
+        <div class="subline">Бесплатная загрузка · Установщик Windows · Версия Viking</div>
+      </div>
+      <div class="showcase" role="img" aria-label="Схематичная иллюстрация возможностей программы Wheel Feel">
+        <div class="mock-header"><i class="dot"></i><i class="dot"></i><i class="dot"></i></div>
+        <div class="mockrow"><span>📦 Каталог товаров</span><b>Wheel Feel</b></div>
+        <div class="mockrow"><span>🚚 Поставщики и остатки</span><b>✓</b></div>
+        <div class="mockrow"><span>🏷️ Правила цен</span><b>✓</b></div>
+        <div class="mockrow"><span>🖼️ Фотографии моделей</span><b>✓</b></div>
+        <div class="mockrow"><span>⚡ Подготовка для Avito</span><b>✓</b></div>
+      </div>
+    </div>
+    <section class="container" id="features">
+      <h2 class="section-title">Возможности Wheel Feel</h2>
+      <p class="section-intro">Инструменты для ежедневной работы с ассортиментом и объявлениями.</p>
+      <div class="features">
+        <article class="feature"><div class="symbol">📋</div><h3>Каталог и таблица</h3><p>Отбор товаров, фильтры, редактирование характеристик шин и дисков.</p></article>
+        <article class="feature"><div class="symbol">🚚</div><h3>Поставщики</h3><p>Прайс-листы, наличие на складах и настройки поставщиков.</p></article>
+        <article class="feature"><div class="symbol">🏷️</div><h3>Цены и наценки</h3><p>Правила расчёта цен по брендам, диаметрам и закупочной стоимости.</p></article>
+        <article class="feature"><div class="symbol">🖼️</div><h3>Фотографии</h3><p>Просмотр, оформление и управление изображениями моделей.</p></article>
+        <article class="feature"><div class="symbol">⚡</div><h3>Автосборка</h3><p>Подготовка файлов для выгрузки объявлений на Avito.</p></article>
+        <article class="feature"><div class="symbol">🔄</div><h3>Обновления</h3><p>Проверка новых версий и установка обновлений прямо из приложения.</p></article>
+      </div>
+    </section>
+    <section class="container" id="download">
+      <div class="download">
+        <div><h2>Wheel Feel 1.7 Viking</h2><p>Установщик для Windows. Скачайте и начните работу с программой.</p></div>
+        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.7/WheelFeel_Setup_1.7_Viking.exe">↓ Скачать установщик</a>
+      </div>
+      <p class="note">Программа распространяется без цифровой подписи издателя: при первом запуске Windows может показать предупреждение SmartScreen. Проверяйте источник файла, прежде чем запускать его.</p>
+    </section>
+    <section class="container" id="update">
+      <h2 class="section-title">Как обновляться</h2>
+      <p class="section-intro">Новые стабильные версии будут публиковаться через GitHub Releases.</p>
+      <div class="steps"><div class="step"><h3>Установите 1.7</h3><p>Скачайте установщик с этой страницы и завершите установку.</p></div><div class="step"><h3>Проверьте обновления</h3><p>В приложении откройте «Настройки» → «Данные и копии» → «Обновления программы».</p></div><div class="step"><h3>Подтвердите установку</h3><p>Когда выйдет версия новее, программа предложит скачать и установить её.</p></div></div>
+    </section>
+  </main>
+  <footer class="container"><span>© PLOVCHIK · Wheel Feel</span><span>Windows · Viking 1.7</span></footer>
+</body>
+</html>
