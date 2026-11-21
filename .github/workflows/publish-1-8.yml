@@ -1,0 +1,66 @@
+name: Publish WheelFeel 1.8 stable release
+
+on:
+  push:
+    paths:
+      - .github/workflows/publish-1-8.yml
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check whether v1.8 already exists
+        id: release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view v1.8 --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify successful WheelFeel 1.8 build
+        if: steps.release.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/44584170265" --jq '.conclusion + "|" + .name')"
+          [[ "$actual" == 'success|Build WheelFeel installer' ]] || { echo "Source build not successful: $actual"; exit 1; }
+
+      - name: Download built installer
+        if: steps.release.outputs.exists == 'false'
+        uses: actions/download-artifact@v4
+        with:
+          run-id: 44584170265
+          github-token: ${{ github.token }}
+          name: WheelFeel-Installer-Test
+          path: release-files
+
+      - name: Validate and publish release
+        if: steps.release.outputs.exists == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          file=release-files/WheelFeel_Setup_1.8_Viking.exe
+          [[ -f "$file" ]] || { echo "Expected WheelFeel 1.8 installer missing"; exit 1; }
+          [[ "$(find release-files -maxdepth 1 -type f | wc -l)" -eq 1 ]] || { echo "Unexpected files"; exit 1; }
+          [[ "$(stat -c %s "$file")" -gt 1000000 ]] || { echo "Installer too small"; exit 1; }
+          (cd release-files && sha256sum WheelFeel_Setup_1.8_Viking.exe > SHA256SUMS.txt)
+          gh release create v1.8 "$file" release-files/SHA256SUMS.txt \
+            --repo "$GITHUB_REPOSITORY" \
+            --target main \
+            --title "Wheel Feel 1.8 Viking" \
+            --notes "Проверка обновления установленной Wheel Feel 1.7 через GitHub Releases. Перед установкой обновления сохраните резервную копию данных. Изменения: тестирование механизма автоматического обновления." \
+            --latest
