@@ -35,10 +35,10 @@
   <main>
     <div class="container hero">
       <div>
-        <span class="pill">Версия 1.7 · Viking · Windows</span>
+        <span class="pill">Актуальная версия · Viking · Windows</span>
         <h1>Всё для работы с <em>Avito</em> — в одном приложении.</h1>
         <p class="lead">Wheel Feel помогает работать с каталогом шин и дисков: собирать прайс-листы поставщиков, настраивать цены, управлять фотографиями и готовить данные для Avito.</p>
-        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.7/WheelFeel_Setup_1.7_Viking.exe">↓ Скачать WheelFeel 1.7</a>
+        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.8/WheelFeel_Setup_1.8_Viking.exe">↓ Скачать WheelFeel 1.8</a>
         <div class="subline">Бесплатная загрузка · Установщик Windows · Версия Viking</div>
       </div>
       <div class="showcase" role="img" aria-label="Схематичная иллюстрация возможностей программы Wheel Feel">
@@ -64,17 +64,49 @@
     </section>
     <section class="container" id="download">
       <div class="download">
-        <div><h2>Wheel Feel 1.7 Viking</h2><p>Установщик для Windows. Скачайте и начните работу с программой.</p></div>
-        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.7/WheelFeel_Setup_1.7_Viking.exe">↓ Скачать установщик</a>
+        <div><h2>Wheel Feel 1.8 Viking</h2><p>Установщик для Windows. Скачайте и начните работу с программой.</p></div>
+        <a class="button" href="https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/v1.8/WheelFeel_Setup_1.8_Viking.exe">↓ Скачать установщик</a>
       </div>
       <p class="note">Программа распространяется без цифровой подписи издателя: при первом запуске Windows может показать предупреждение SmartScreen. Проверяйте источник файла, прежде чем запускать его.</p>
     </section>
     <section class="container" id="update">
       <h2 class="section-title">Как обновляться</h2>
       <p class="section-intro">Новые стабильные версии будут публиковаться через GitHub Releases.</p>
-      <div class="steps"><div class="step"><h3>Установите 1.7</h3><p>Скачайте установщик с этой страницы и завершите установку.</p></div><div class="step"><h3>Проверьте обновления</h3><p>В приложении откройте «Настройки» → «Данные и копии» → «Обновления программы».</p></div><div class="step"><h3>Подтвердите установку</h3><p>Когда выйдет версия новее, программа предложит скачать и установить её.</p></div></div>
+      <div class="steps"><div class="step"><h3>Установите актуальную версию</h3><p>Скачайте установщик с этой страницы и завершите установку.</p></div><div class="step"><h3>Проверьте обновления</h3><p>В приложении откройте «Настройки» → «Данные и копии» → «Обновления программы».</p></div><div class="step"><h3>Подтвердите установку</h3><p>Когда выйдет версия новее, программа предложит скачать и установить её.</p></div></div>
     </section>
   </main>
-  <footer class="container"><span>© PLOVCHIK · Wheel Feel</span><span>Windows · Viking 1.7</span></footer>
+  <footer class="container"><span>© PLOVCHIK · Wheel Feel</span><span>Windows · Viking 1.8</span></footer>
+
+  <script>
+    // Show the newest stable installer using GitHub Releases, with 1.8 fallback.
+    (async function () {
+      try {
+        const response = await fetch("https://api.github.com/repos/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/latest", {
+          headers: { "Accept": "application/vnd.github+json" }
+        });
+        if (!response.ok) return;
+        const release = await response.json();
+        if (release.draft || release.prerelease || !/^v\\d+(?:\\.\\d+)*$/.test(release.tag_name)) return;
+        const version = release.tag_name.slice(1);
+        const asset = (release.assets || []).find(item =>
+          new RegExp("^WheelFeel_Setup_" + version.replace(/\\./g, "\\.") + "(?:_[A-Za-z0-9-]+)?\\.exe$", "i").test(item.name)
+        );
+        if (!asset || !asset.browser_download_url ||
+            !asset.browser_download_url.startsWith("https://github.com/kozenkovnikitavladimirovich-max/WheelFeel-Builder/releases/download/")) return;
+        document.querySelectorAll('a[href*="/releases/download/"]').forEach(link => {
+          link.href = asset.browser_download_url;
+        });
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node.parentElement && !["SCRIPT", "STYLE"].includes(node.parentElement.tagName)) {
+            node.textContent = node.textContent.replace(/\\b1\\.8\\b/g, version);
+          }
+        }
+      } catch (_) {
+        // The stable 1.8 link remains usable when the GitHub API is unavailable.
+      }
+    })();
+  </script>
 </body>
 </html>
